@@ -16,7 +16,12 @@ int64 Encrypt(int64 arg, int64 key);
 int64 Decrypt(int64 arg, int64 key);
 bool LoadSTables(std::string fileName);
 
-enum EncryptionType {ET_ECB, ET_CBC, ET_CFB, ET_OFB};
+enum EncryptionType {
+	ET_ECB,
+	ET_CBC,
+	ET_CFB,
+	ET_OFB
+};
 
 void EncryptFile(EncryptionType et, int64 key, int64 initialVector, std::string inputFile, std::string outputFile);
 void DecryptFile(EncryptionType et, int64 key, int64 initialVector, std::string inputFile, std::string outputFile);

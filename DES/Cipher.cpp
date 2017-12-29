@@ -107,25 +107,12 @@ vector<int48> GetKeys(int64 key)
 	int28 C = ApplyPermutation<int64, int28>(key, PC_1_C);
 	int28 D = ApplyPermutation<int64, int28>(key, PC_1_D);
 
-	unsigned long long cc = C.to_ullong();
-	unsigned long long dd = D.to_ullong();
-
 	vector<int48> res;
 	for (int i = 0; i < 16; ++i) {
 		C = rotateLeft<int28>(C, 28, keyIterationToShift[i]);
 		D = rotateLeft<int28>(D, 28, keyIterationToShift[i]);
 		int56 CD = MergeNumbers<int28, int56>(vector<int28>({ C, D }), 2, 28);
-
-		//int56 CD = MergeNumbers<int28, int56>(vector<int28>({ D, C }), 2, 28);
 		res.push_back(ApplyPermutation<int56, int48>(CD, PC_2));
-
-		unsigned long long cc = C.to_ullong();
-		unsigned long long dd = D.to_ullong();
-		unsigned long long cdcd = CD.to_ullong();
-		cdcd = cdcd;
-
-		unsigned long long klu = res.back().to_ullong();
-		klu = klu;
 	}
 	return res;
 }
@@ -144,24 +131,14 @@ int4 STransform(int tableIdx, int6 arg)
 
 int32 f(int32 R, int48 K)
 {
-	ull kk = K.to_ullong();
-
-	unsigned long long erk = (E(R) ^ K).to_ullong();
 	vector<int6> B = SplitNumber<int48, int6>(E(R) ^ K, 8, 6);
 	vector<int4> S(8);
 
-	vector<unsigned long long> ss(8);
-
 	for (int i = 0; i < 8; ++i) {
 		S[i] = STransform(i, B[i]);
-		ss[i] = S[i].to_ullong();
 	}
 
-	//reverse(S.begin(), S.end());
 	int32 res = MergeNumbers<int4, int32>(S, 8, 4);
-
-	ull resres = res.to_ullong();
-
 	return ApplyPermutation<int32, int32>(res, fPermutation);
 }
 
@@ -173,36 +150,18 @@ int64 Encrypt_Decrypt(int64 arg, int64 key, bool to_decrypt = false)
 	int32 L = LR[0];
 	int32 R = LR[1];
 
-	unsigned long long tmp_key = key.to_ullong();
-
 	vector<int48> K = GetKeys(key);
-	if (to_decrypt)	reverse(K.begin(), K.end());
-
-	vector<unsigned long long> tmp;
-	for (auto i : K) tmp.push_back(i.to_ullong());
+	if (to_decrypt)
+		reverse(K.begin(), K.end());
 
 	for (int i = 0; i < 16; ++i) {
-
-		unsigned long long rr = R.to_ullong();
-		unsigned long long ll = L.to_ullong();
-
 		int32 L_next = R;
 		R = L ^ f(R, K[i]);
 		L = L_next;
-
-		rr = R.to_ullong();
-		ll = L.to_ullong();
-		ll = ll;
 	}
 
 	arg = MergeNumbers<int32, int64>(vector<int32>({ R, L }), 2, 32);
-	
-	ull argarg = arg.to_ullong();
-
-	ull resresres = ApplyPermutation<int64, int64>(arg, reverseInitPerm).to_ullong();
-
-	return resresres;
-	//return ApplyPermutation<int64, int64>(arg, reverseInitPerm);
+	return ApplyPermutation<int64, int64>(arg, reverseInitPerm);
 }
 
 int64 Encrypt(int64 arg, int64 key)
@@ -266,6 +225,7 @@ void DecNext_OFB(int64 key, int64 &cur, int64 &prev_cipher)
 }
 
 typedef void(*EncDecNextFunction)(int64, int64&, int64&);
+
 std::map<EncryptionType, EncDecNextFunction> EncTypeToFunction = {
 	{ET_ECB, EncNext_ECB},
 	{ET_CBC, EncNext_CBC},
@@ -300,12 +260,13 @@ void EncryptFile(EncryptionType et, int64 key, int64 initialVector, std::string 
 	for (idx = 0; idx + 8 <= length; idx += 8) {
 		char bytes[8];
 		input.read(bytes, 8);
+
 		int64 cur = MergeNumbers<int8, int64>(vector<int8>(bytes, bytes + 8), 8, 8);
-
 		nextValues(key, cur, prev_cipher);
-
 		vector<int8> vec = SplitNumber<int64, int8>(cur, 8, 8);
-		for (int i = 0; i < 8; ++i) bytes[i] = vec[i].to_ulong();
+
+		for (int i = 0; i < 8; ++i)
+			bytes[i] = vec[i].to_ulong();
 		output.write(bytes, 8);
 	}
 
@@ -314,7 +275,7 @@ void EncryptFile(EncryptionType et, int64 key, int64 initialVector, std::string 
 		input.read(bytes, length - idx);
 		// fill remaining bytes with their ammount
 		for (int j = length - idx; j < 8; ++j)
-			bytes[j] = 0;// 8 - length + idx;
+			bytes[j] = 8 - (length - idx);
 
 		int64 cur = MergeNumbers<int8, int64>(vector<int8>(bytes, bytes + 8), 8, 8);
 		nextValues(key, cur, prev_cipher);
@@ -346,16 +307,14 @@ void DecryptFile(EncryptionType et, int64 key, int64 initialVector, std::string 
 	for (idx = 0; idx + 8 <= length; idx += 8) {
 		char bytes[8];
 		input.read(bytes, 8);
-		int64 cur = MergeNumbers<int8, int64>(vector<int8>(bytes, bytes + 8), 8, 8).to_ullong();
 		
-		unsigned long long curll = cur.to_ullong();
+		int64 cur = MergeNumbers<int8, int64>(vector<int8>(bytes, bytes + 8), 8, 8);
 		nextValues(key, cur, prev_cipher);
-		unsigned long long next_curll = cur.to_ullong();
-
 		vector<int8> vec = SplitNumber<int64, int8>(cur, 8, 8);
 
 		if (idx + 16 <= length) {
-			for (int i = 0; i < 8; ++i) bytes[i] = vec[i].to_ulong();
+			for (int i = 0; i < 8; ++i)
+				bytes[i] = vec[i].to_ulong();
 			output.write(bytes, 8);
 		}
 		// the last block
@@ -397,6 +356,5 @@ bool TestEncryption(EncryptionType et, int64 key, int64 initialVector, std::stri
 	
 	EncryptFile(et, key, initialVector, inputFileName, encFileName);
 	DecryptFile(et, key, initialVector, encFileName, decFileName);
-	EqualFiles(inputFileName, decFileName);
-	return true;
+	return EqualFiles(inputFileName, decFileName);
 }
